@@ -1,0 +1,51 @@
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+
+# Given initial conditions and parameters
+p0 = np.array([0.325514, -0.459460, 0.166229])  # Initial position
+v0 = np.array([-9.096111, -6.916686, -1.305721])  # Initial velocity
+mu = 4 * np.pi**2
+
+# Define the system of differential equations
+def comet_motion(w, t):
+    x, y, z, vx, vy, vz = w
+    r = np.sqrt(x**2 + y**2 + z**2)
+    d2x_dt2 = -mu * x / r**3
+    d2y_dt2 = -mu * y / r**3
+    d2z_dt2 = -mu * z / r**3
+    return vx, vy, vz, d2x_dt2, d2y_dt2, d2z_dt2
+
+# Time span for integration (let's go for 200 years to cover 2186)
+t_span = np.linspace(0, 200, 1000) 
+
+# Initial conditions for the solver
+w0 = np.concatenate((p0, v0))
+
+# Solve the system numerically
+sol = odeint(comet_motion, w0, t_span)
+
+# Extract positions (x, y, z) from the solution
+positions = sol[:, :3]
+
+# Calculate r(t)
+r_values = np.linalg.norm(positions, axis=1)
+
+# Plotting r(t) against t
+plt.figure(figsize=(10, 6))
+plt.plot(t_span, r_values)
+plt.xlabel('Tiempo (años)')
+plt.ylabel('r(t) (UA)')
+plt.title('Distancia del cometa Halley al Sol (r) en función del tiempo')
+plt.grid(True)
+
+# Estimate the orbital period
+# We'll look for peaks in r(t) (aphelion points) and measure the time between them
+from scipy.signal import find_peaks
+
+peaks, _ = find_peaks(r_values, distance=50)  # Adjust 'distance' if needed
+orbital_period_estimate = t_span[peaks[1]] - t_span[peaks[0]]
+
+plt.text(0.7, 0.8, f'Periodo estimado: {orbital_period_estimate:.2f} años', transform=plt.gca().transAxes)
+
+plt.show()
