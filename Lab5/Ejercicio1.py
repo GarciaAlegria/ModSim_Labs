@@ -1,49 +1,49 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Parámetros de entrada (ajusta según tus necesidades)
-M = 60  # Número de filas del grid
-N = 60  # Número de columnas del grid
-T = 100  # Límite temporal
-K = 0.25  # Parámetro de difusión
+def get_neighbors(i, j, M, N, neigh):
+    """ Devuelve la lista de vecinos según el tipo de vecindad. """
+    if neigh == 4:  # Vecindad de 4 (arriba, abajo, izquierda, derecha)
+        return [(i+1, j), (i-1, j), (i, j+1), (i, j-1)]
+    elif neigh == 8:  # Vecindad de 8 (incluye diagonales)
+        return [(i+1, j), (i-1, j), (i, j+1), (i, j-1), 
+                (i+1, j+1), (i-1, j-1), (i+1, j-1), (i-1, j+1)]
 
-# Distribución inicial de probabilidad (ajusta según la Figura 1)
-u_inicial = np.zeros((M, N))
-u_inicial[1, 2] = 1
-u_inicial[2, 1] = 1
-u_inicial[2, 3] = 1
-u_inicial[3, 2] = 1
+def diffusion_simulation(M, N, T, u0, K, neigh):
+    # Inicialización de la simulación
+    u = np.copy(u0)
+    history = [u0]
+    
+    for t in range(T):
+        u_new = np.copy(u)
+        
+        for i in range(1, M-1):
+            for j in range(1, N-1):
+                neighbors = get_neighbors(i, j, M, N, neigh)
+                total = sum(u[ni, nj] for ni, nj in neighbors if 0 <= ni < M and 0 <= nj < N)
+                u_new[i, j] = (1 - K) * u[i, j] + (K / len(neighbors)) * total
+        
+        u = np.copy(u_new)
+        history.append(u)
+    
+    return history
 
-# Definir la región R (ajusta según la Figura 1)
-R = set([(1, 2), (2, 1), (2, 3), (3, 2)])
-
-# Tipo de vecindad (Von Neumann)
-vecindad = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-
-# Crear el grid y el historial
-grid = u_inicial.copy()
-historial = [grid.copy()]
-
-# Simulación
-for t in range(T):
-    nuevo_grid = grid.copy()
-    for i in range(M):
-        for j in range(N):
-            if (i, j) in R:
-                suma_vecinos = 0
-                for vecino in vecindad:
-                    ni, nj = i + vecino[0], j + vecino[1]
-                    if 0 <= ni < M and 0 <= nj < N and (ni, nj) in R:
-                        suma_vecinos += grid[ni][nj]
-                nuevo_grid[i][j] = (1 - K) * grid[i][j] + (K / 4) * suma_vecinos  # Usamos 4 vecinos en Von Neumann
-
-    grid = nuevo_grid
-    historial.append(grid.copy())
-
-# Visualización (mostrar algunas imágenes clave)
-tiempos_a_mostrar = [0, 1, 25, 50, 100]  # Ajusta según tus necesidades
-for t in tiempos_a_mostrar:
-    plt.imshow(historial[t], cmap='hot', interpolation='nearest')
-    plt.title(f'Tiempo t = {t}')
-    plt.colorbar()
+def plot_diffusion(history, T):
+    fig, ax = plt.subplots(1, T//25 + 1, figsize=(15, 5))
+    
+    for t in range(0, T+1, 25):
+        ax[t//25].imshow(history[t], cmap='hot', interpolation='nearest')
+        ax[t//25].set_title(f'Time {t}')
+    
     plt.show()
+
+# Parámetros iniciales
+M, N = 50, 50
+T = 100
+K = 0.2
+neigh = 8  # Vecindad de 8 vecinos
+u0 = np.zeros((M, N))
+u0[M//2, N//2] = 1  # Concentración inicial
+
+history = diffusion_simulation(M, N, T, u0, K, neigh)
+plot_diffusion(history, T)
