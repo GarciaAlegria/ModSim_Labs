@@ -51,7 +51,6 @@ K = 10
 poblacion = generar_poblacion(N, len(v))
 for _ in range(maxI):
     fitness_valores = [fitness(s, v, w, K) for s in poblacion]
-    print(f"Fitness valores: {fitness_valores}")  # Debug print
     if not fitness_valores:
         print("Error: fitness_valores is empty")
         break
@@ -60,11 +59,26 @@ for _ in range(maxI):
     for i in range(0, len(padres) - 1, 2):
         hijo1, hijo2 = cruzar(padres[i], padres[i + 1])
         nueva_poblacion.extend([mutar(hijo1, m), mutar(hijo2, m)])
+    if len(nueva_poblacion) < N:
+        # Rellenar la población si es necesario
+        while len(nueva_poblacion) < N:
+            nueva_poblacion.append(random.choice(poblacion))
     poblacion = nueva_poblacion
 
-# Encontrar la mejor solución
-mejor_solucion = max(poblacion, key=lambda s: fitness(s, v, w, K))
-mejor_fitness = fitness(mejor_solucion, v, w, K)
+poblacion = nueva_poblacion
 
-print("Mejor solución:", mejor_solucion)
-print("Valor total:", mejor_fitness)
+# Verificar que la población no esté vacía antes de encontrar la mejor solución
+if poblacion:
+    # Imprimir los valores de fitness de toda la población
+    print("Valores de fitness de la población:")
+    for idx, solucion in enumerate(poblacion):
+        fitness_valor = fitness(solucion, v, w, K)
+        print(f"Solución {idx + 1}: {solucion}, Fitness: {fitness_valor}")
+
+    mejor_solucion = max(poblacion, key=lambda s: fitness(s, v, w, K))
+    mejor_fitness = fitness(mejor_solucion, v, w, K)
+
+    print("\nMejor solución:", mejor_solucion)
+    print("Valor total:", mejor_fitness)
+else:
+    print("Error: La población está vacía.")
