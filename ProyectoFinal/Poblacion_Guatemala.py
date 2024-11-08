@@ -15,10 +15,10 @@ def crecimiento_logistico(P0, r, K, t):
     return K / (1 + ((K - P0) / P0) * np.exp(-r * t))
 
 # Parámetros
-P0 = 16176.133  # Población inicial en miles (16,176,133 en 2015)
-r = 0.018       # Tasa de crecimiento anual (1.8%)
-K = 30000       # Capacidad de carga para el modelo logístico (en miles)
-años = 2050 - 2015  # Años para la simulación (2015 a 2050)
+P0 = 3000000  # Población inicial en miles (3 millones en 1950)
+r = 0.029       # Tasa de crecimiento anual (1.8%)
+K = 6000000       # Capacidad de carga para el modelo logístico (en miles)
+años = 2050 - 1950  # Años para la simulación (2015 a 2050)
 
 # Cálculo de poblaciones año por año
 poblacion_exponencial = [crecimiento_exponencial(P0, r, t) for t in range(años)]
@@ -28,8 +28,8 @@ poblacion_logistica = [crecimiento_logistico(P0, r, K, t) for t in range(años)]
 frames = []
 for año in range(años):
     plt.figure(figsize=(8, 4))
-    plt.plot(range(2015, 2015 + año + 1), poblacion_exponencial[:año+1], label="Crecimiento Exponencial", color="blue")
-    plt.plot(range(2015, 2015 + año + 1), poblacion_logistica[:año+1], label="Crecimiento Logístico", color="green")
+    plt.plot(range(1950, 1950 + año + 1), poblacion_exponencial[:año+1], label="Crecimiento Exponencial", color="blue")
+    plt.plot(range(1950, 1950 + año + 1), poblacion_logistica[:año+1], label="Crecimiento Logístico", color="green")
     plt.xlabel("Años")
     plt.ylabel("Población (en miles)")
     plt.title(f"Simulación de Crecimiento de Población - Año {2015 + año}")
