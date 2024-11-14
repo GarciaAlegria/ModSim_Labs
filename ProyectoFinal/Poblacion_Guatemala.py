@@ -9,7 +9,6 @@ Path("frames").mkdir(parents=True, exist_ok=True)
 def crecimiento_exponencial(P0, r, t):
     """Simula el crecimiento exponencial de una población."""
     return P0 * np.exp(r * t)
-
 def crecimiento_logistico(P0, r, K, t):
     """Simula el crecimiento logístico de una población."""
     return K / (1 + ((K - P0) / P0) * np.exp(-r * t))
