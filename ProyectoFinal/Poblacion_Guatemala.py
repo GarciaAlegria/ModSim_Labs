@@ -41,8 +41,8 @@ pop_log_future = logistic_model(t_future, P0_log, r_log, K_log)
 
 # Crear GIF
 fig, ax = plt.subplots()
-ax.set_xlim(1950, 2050)  # Ajustar el límite del eje x para incluir todos los años
-ax.set_ylim(0, max(pop_log_future) * 1.1)
+ax.set_xlim(2025, 2050)
+ax.set_ylim(17e6, 35e6)  # Ajuste del rango Y para mayor claridad
 ax.set_xlabel("Año")
 ax.set_ylabel("Población")
 ax.set_title("Simulación de crecimiento poblacional")
@@ -52,9 +52,9 @@ line_log, = ax.plot([], [], label="Modelo Logístico", color="green")
 ax.legend()
 
 def update(frame):
-    current_years = np.concatenate((years, years_future[:frame]))
-    current_pop_exp = np.concatenate((population, pop_exp_future[:frame]))
-    current_pop_log = np.concatenate((population, pop_log_future[:frame]))
+    current_years = years_future[:frame]
+    current_pop_exp = pop_exp_future[:frame]
+    current_pop_log = pop_log_future[:frame]
 
     line_exp.set_data(current_years, current_pop_exp)
     line_log.set_data(current_years, current_pop_log)
