@@ -1,52 +1,76 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import imageio
-from pathlib import Path
+from scipy.optimize import curve_fit
+from matplotlib.animation import FuncAnimation, PillowWriter
 
-# Crear una carpeta temporal para almacenar las imágenes de cada año
-Path("frames").mkdir(parents=True, exist_ok=True)
+# Datos de población y años
+years = np.array([1950, 1960, 1970, 1980, 1990, 2000, 2010, 2024])
+population = np.array([3000000, 4128880, 5455197, 6890346, 9050115, 11589761, 14259687, 18602431])
 
-def crecimiento_exponencial(P0, r, t):
-    """Simula el crecimiento exponencial de una población."""
+# Convertir años a "años desde 1950"
+t = years - 1950
+
+# Modelo exponencial
+def exponential_model(t, P0, r):
     return P0 * np.exp(r * t)
-def crecimiento_logistico(P0, r, K, t):
-    """Simula el crecimiento logístico de una población."""
+
+# Modelo logístico
+def logistic_model(t, P0, r, K):
     return K / (1 + ((K - P0) / P0) * np.exp(-r * t))
 
-# Parámetros
-P0 = 3000000  # Población inicial en miles (3 millones en 1950)
-r = 0.029       # Tasa de crecimiento anual (1.8%)
-K = 6000000       # Capacidad de carga para el modelo logístico (en miles)
-años = 2050 - 1950  # Años para la simulación (2015 a 2050)
+# Ajustar el modelo exponencial
+params_exp, _ = curve_fit(exponential_model, t, population, p0=[3e6, 0.02])
+P0_exp, r_exp = params_exp
 
-# Cálculo de poblaciones año por año
-poblacion_exponencial = [crecimiento_exponencial(P0, r, t) for t in range(años)]
-poblacion_logistica = [crecimiento_logistico(P0, r, K, t) for t in range(años)]
+# Ajustar el modelo logístico
+params_log, _ = curve_fit(logistic_model, t, population, p0=[3e6, 0.02, 2e7])
+P0_log, r_log, K_log = params_log
 
-# Crear imágenes para cada año
-frames = []
-for año in range(años):
-    plt.figure(figsize=(8, 4))
-    plt.plot(range(1950, 1950 + año + 1), poblacion_exponencial[:año+1], label="Crecimiento Exponencial", color="blue")
-    plt.plot(range(1950, 1950 + año + 1), poblacion_logistica[:año+1], label="Crecimiento Logístico", color="green")
-    plt.xlabel("Años")
-    plt.ylabel("Población (en miles)")
-    plt.title(f"Simulación de Crecimiento de Población - Año {2015 + año}")
-    plt.legend()
-    plt.grid(True)
-    
-    # Guardar cada frame
-    filename = f"frames/frame_{2015 + año}.png"
-    plt.savefig(filename)
-    frames.append(imageio.imread(filename))
-    plt.close()
+# Imprimir constantes
+print("Modelo exponencial:")
+print(f"P0: {P0_exp:.2f}, r: {r_exp:.6f}")
+print("\nModelo logístico:")
+print(f"P0: {P0_log:.2f}, r: {r_log:.6f}, K: {K_log:.2f}")
 
-# Crear el GIF
-imageio.mimsave("simulacion_crecimiento_poblacion_guatemala.gif", frames, duration=0.5)
+# Predicción para 2025-2050
+years_future = np.arange(2025, 2051)
+t_future = years_future - 1950
 
-# Limpiar los frames temporales
-for filename in Path("frames").glob("*.png"):
-    filename.unlink()
-Path("frames").rmdir()
+pop_exp_future = exponential_model(t_future, P0_exp, r_exp)
+pop_log_future = logistic_model(t_future, P0_log, r_log, K_log)
 
-print("GIF creado: simulacion_crecimiento_poblacion_guatemala.gif")
+# Crear GIF
+fig, ax = plt.subplots()
+ax.set_xlim(2025, 2050)
+ax.set_ylim(0, max(pop_log_future) * 1.1)
+ax.set_xlabel("Año")
+ax.set_ylabel("Población")
+ax.set_title("Simulación de crecimiento poblacional")
+
+line_exp, = ax.plot([], [], label="Modelo Exponencial", color="blue")
+line_log, = ax.plot([], [], label="Modelo Logístico", color="green")
+ax.legend()
+
+def update(frame):
+    current_years = years_future[:frame]
+    current_pop_exp = pop_exp_future[:frame]
+    current_pop_log = pop_log_future[:frame]
+
+    line_exp.set_data(current_years, current_pop_exp)
+    line_log.set_data(current_years, current_pop_log)
+
+    return line_exp, line_log
+
+ani = FuncAnimation(fig, update, frames=len(years_future), interval=200, blit=True)
+
+# Guardar el GIF
+writer = PillowWriter(fps=5)
+ani.save("population_simulation.gif", writer=writer)
+
+plt.show()
+
+# Imprimir proyecciones
+print("\nProyecciones de población (2025-2050):")
+print("Año\tExponencial\tLogístico")
+for year, exp, log in zip(years_future, pop_exp_future, pop_log_future):
+    print(f"{year}\t{exp:.0f}\t{log:.0f}")
