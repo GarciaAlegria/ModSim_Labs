@@ -126,3 +126,5 @@ print(f"Población estimada para el año 2024 (Modelo Logístico): {pop_log_2024
 print("\nPoblación proyectada para el año 2050:") # Imprimir la población proyectada para el año 2050
 print(f"Modelo exponencial: {pop_exp_future[-1]:.0f}") # Imprimir la población proyectada para 2050 con el modelo exponencial
 print(f"Modelo logístico: {pop_log_future[-1]:.0f}") # Imprimir la población proyectada para 2050 con el modelo logístico
+
+print(f"Diferencia entre modelos (2050): {pop_exp_future[-1] - pop_log_future[-1]:.0f}")
